@@ -74,7 +74,13 @@
         /// <returns><c>true</c> if the specified coordinates are within the bounds of the HexagonGrid and <c>false</c> otherwise.</returns>
         public bool IsInBounds(int x, int y)
         {
-            return (Math.Abs(x) + Math.Abs(y)) / 2 <= this.radius;
+            int absSum = Math.Abs(x) + Math.Abs(y);
+            if (absSum % 2 == 1)
+            {
+                return false;
+            }
+
+            return (absSum / 2) <= this.radius;
         }
 
         /// <summary>
