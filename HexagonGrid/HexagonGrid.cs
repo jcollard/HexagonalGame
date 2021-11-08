@@ -1,6 +1,7 @@
 ﻿namespace Hexagon
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
 
     /// <summary>
@@ -8,7 +9,7 @@
     /// hexagonally.
     /// </summary>
     /// <typeparam name="T">The type of data stored in this HexagonGrid.</typeparam>
-    public class HexagonGrid<T>
+    public class HexagonGrid<T> : IEnumerable<((int, int), T)>
     {
         /// <summary>
         /// The radius of this HexagonGrid.
@@ -115,6 +116,51 @@
             T value;
             this.grid.TryGetValue((x, y), out value);
             return value;
+        }
+
+        /// <summary>
+        /// Returns an iterator that returns a pair containing the coordinate and the element contained at that location.
+        /// The order of the returned elements starts at (0,0) then returns each surrounding radius starting with the 
+        /// element directly to the left and then rotating clock-wise. For example, a HexagonGrid with radius 2 will return
+        /// an iterator in the following order:<br/>
+        /// radius 0: (0,0) <br/>
+        /// radius 1: (-2, 0), (-1, 1), (1, 1), (2, 0), (1, -1) <br/>
+        /// radius 2: (-4, 0), (-3, 1), (-2, 2), (0, 2), (2, 2), (3, 1), (4, 0), (3, -1), (2, -2), (0, -2), (-2, -2), (-3, -1)
+        /// </summary>
+        /// <returns>An IEnumerator for each element in this HexagonGrid.</returns>
+        public IEnumerator<((int, int), T)> GetEnumerator()
+        {
+            yield return ((0, 0), this.Get(0, 0));
+
+            (int, int)[] directions = {
+                ( 1,  1), // Up-Right
+                ( 2,  0), // Right
+                ( 1, -1), // Down-Right
+                (-1, -1), // Down-Left
+                (-2,  0), // Left
+                (-1,  1), // Up-Left
+            };
+
+            for (int r = 0; r <= this.radius; r++)
+            {
+                int x = r * -2;
+                int y = 0;
+                
+                foreach ((int xInc, int yInc) in directions)
+                {
+                    for (int i = 0; i < r; i++)
+                    {
+                        yield return ((x, y), this.Get(x, y));
+                        x += xInc;
+                        y += yInc;
+                    }
+                }
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+           return this.GetEnumerator();
         }
     }
 }
